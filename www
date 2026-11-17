@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#03030a">
+<title>Tasks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{--spring:cubic-bezier(.3,1.6,.5,1);--dim:rgba(255,255,255,.55);--green:#30d158;--blue:#0a84ff;
+--pix:'Press Start 2P',ui-monospace,monospace;--old:'VT323',ui-monospace,monospace}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;background:#03030a}
+body{font-family:var(--old);font-size:19px;color:#fff;overflow:hidden;user-select:none;-webkit-font-smoothing:antialiased}
+
+/* ---------- background image ---------- */
+.bg{position:fixed;inset:0;z-index:0;
+ background-color:#03030a;
+ background-image: 
+  linear-gradient(to bottom, rgba(3,3,10,.3) 0%, rgba(3,3,10,.7) 100%),
+  url('bg.jpg');
+ background-size:cover;
+ background-position:center;
+ background-repeat:no-repeat;
+}
+
+/* ---------- layout ---------- */
+.scroll{position:fixed;inset:0;z-index:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top) + 26px) 18px calc(env(safe-area-inset-bottom) + 130px)}
+h1{margin:0;font-family:var(--pix);font-size:13px;font-weight:400;letter-spacing:.34em;text-transform:uppercase;text-align:center;
+ color:#fff;text-shadow:0 0 14px rgba(120,180,255,.9),0 0 44px rgba(94,92,230,.9)}
+.sub{margin:12px 0 22px;font-size:19px;letter-spacing:.08em;color:var(--dim);text-align:center;min-height:22px}
+.view{animation:in .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes in{from{opacity:0;transform:translateY(16px)}}
+.glass{background:rgba(10,10,15,.4);-webkit-backdrop-filter:blur(24px) saturate(150%);backdrop-filter:blur(24px) saturate(150%);border:1px solid rgba(255,255,255,.14);border-radius:26px}
+.panel{padding:16px;margin-bottom:22px}
+.row{display:flex;gap:10px}
+.row+.row{margin-top:12px}
+input{font-family:var(--old);font-size:27px;letter-spacing:.07em;color:#fff;width:100%;height:60px;min-width:0;padding:0 16px;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);outline:0;user-select:text;
+ transition:border-radius .35s var(--spring),box-shadow .2s,border-color .2s}
+input::placeholder{color:rgba(255,255,255,.4);letter-spacing:.1em}
+input:focus{border-radius:26px;border-color:var(--blue);box-shadow:0 0 0 4px rgba(10,132,255,.25)}
+.shake{animation:sh .35s}
+@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+/* ---------- scrollable clock ---------- */
+.clock{position:relative;display:flex;align-items:center;justify-content:center;gap:2px;margin:14px 0 16px}
+.clock::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:196px;height:62px;border-radius:18px;
+ border-top:1px solid rgba(255,255,255,.26);border-bottom:1px solid rgba(255,255,255,.26);background:rgba(0,0,0,.3);
+ box-shadow:inset 0 0 34px rgba(10,132,255,.28);pointer-events:none}
+.wheel{position:relative;width:86px;height:186px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+ -webkit-mask-image:linear-gradient(#0000,#000 30%,#000 70%,#0000);mask-image:linear-gradient(#0000,#000 30%,#000 70%,#0000)}
+.wheel::-webkit-scrollbar{width:0;height:0;display:none}
+.wcol{padding:62px 0}
+.witem{height:62px;display:grid;place-items:center;scroll-snap-align:center;font-family:var(--old);font-size:38px;line-height:1;
+ color:rgba(255,255,255,.28);transition:color .18s,text-shadow .18s}
+.witem.on{color:#fff;text-shadow:0 0 18px rgba(100,200,255,.95)}
+.colon{font-family:var(--pix);font-size:13px;color:rgba(255,255,255,.5);padding:0 3px}
+
+/* ---------- buttons ---------- */
+.btn{font-family:var(--pix);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#fff;height:60px;padding:0 18px;border-radius:20px;
+ border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.09);
+ transition:border-radius .35s var(--spring),transform .25s var(--spring),background .2s,box-shadow .2s}
+.btn:active{transform:scale(.91);border-radius:30px;background:rgba(255,255,255,.22)}
+.btn:disabled{opacity:.3;pointer-events:none}
+.go{background:var(--green);color:#03210c;border-color:transparent;box-shadow:0 8px 24px rgba(48,209,88,.35)}
+.go:active{background:#52e07a}
+.red{background:rgba(255,69,58,.92);border-color:transparent}
+.full{width:100%}
+
+/* ---------- task cards ---------- */
+.task{display:grid;grid-template-columns:auto 1fr auto auto;gap:14px;align-items:center;padding:16px;margin-bottom:12px;
+ transition:border-radius .35s var(--spring),transform .25s var(--spring)}
+.task:active{border-radius:38px;transform:scale(.975)}
+.task.new{animation:drop .5s var(--spring)}
+@keyframes drop{from{transform:translateY(-16px) scale(.92);opacity:0}}
+.box{position:relative;width:38px;height:38px;border-radius:13px;border:2.5px solid rgba(255,255,255,.4);transition:all .45s var(--spring)}
+.box::after{content:"";position:absolute;left:11px;top:3px;width:9px;height:18px;border:solid #03210c;border-width:0 4px 4px 0;transform:rotate(45deg) scale(0);transition:transform .4s var(--spring) .12s}
+.done .box{background:var(--green);border-color:transparent;border-radius:19px;box-shadow:0 0 24px rgba(48,209,88,.55)}
+.done .box::after{transform:rotate(45deg) scale(1)}
+.name{font-family:var(--old);font-size:26px;line-height:1.05;letter-spacing:.04em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.done .name{color:var(--dim);text-decoration:line-through}
+.play{width:60px;padding:0;display:grid;place-items:center}
+.play::before{content:"";border:solid transparent;border-width:11px 0 11px 18px;border-left-color:#03210c;margin-left:5px}
+.x{width:46px;height:46px;padding:0;font-size:22px;line-height:1;background:transparent;border-color:transparent;color:rgba(255,255,255,.45)}
+
+/* ---------- dock ---------- */
+.dock{position:fixed;left:18px;right:18px;bottom:calc(env(safe-area-inset-bottom) + 16px);height:76px;padding:8px;display:flex;gap:6px;border-radius:34px;z-index:5;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.tab{flex:1;font-family:var(--pix);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);border:0;border-radius:26px;background:transparent;
+ transition:border-radius .35s var(--spring),transform .25s var(--spring),background .25s,color .25s}
+.tab:active{transform:scale(.93);border-radius:34px}
+.tab.on{background:rgba(255,255,255,.17);color:#fff}
+
+/* ---------- stats ---------- */
+.seg{display:flex;gap:4px;padding:6px;margin-bottom:16px;border-radius:24px}
+.sg{flex:1;height:50px;font-family:var(--pix);font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);border:0;border-radius:18px;background:transparent;
+ transition:border-radius .35s var(--spring),transform .25s var(--spring),background .25s,color .25s}
+.sg:active{transform:scale(.93);border-radius:26px}
+.sg.on{background:rgba(255,255,255,.18);color:#fff}
+.stats{display:flex;gap:12px;margin-bottom:16px}
+.stats .glass{flex:1;padding:18px;font-size:17px;letter-spacing:.05em;color:var(--dim)}
+.stats b{display:block;font-family:var(--old);font-size:46px;font-weight:400;color:#fff;letter-spacing:.02em;line-height:1.1}
+.chartp{padding:20px 18px 16px}
+.chartp .t{font-family:var(--old);font-size:24px;letter-spacing:.05em;margin-bottom:26px}
+.chartp .t small{font-size:18px;color:var(--dim);margin-left:8px}
+.plot{height:260px;display:flex;gap:10px;align-items:flex-end;border-bottom:1px solid rgba(255,255,255,.2);
+ background:repeating-linear-gradient(#0000 0 64px,rgba(255,255,255,.08) 64px 65px)}
+.colw{flex:1;height:100%;display:flex;align-items:flex-end}
+.bar{position:relative;width:100%;height:0;border-radius:16px 16px 6px 6px;background:linear-gradient(#64d2ff,#0a84ff 55%,#5e5ce6);
+ box-shadow:0 0 22px rgba(10,132,255,.45);transition:height .9s var(--spring),border-radius .3s var(--spring)}
+.bar:active{border-radius:26px 26px 8px 8px}
+.val{position:absolute;top:-26px;left:50%;transform:translateX(-50%);font-family:var(--old);font-size:19px}
+.xl{display:flex;gap:10px;padding-top:10px;font-size:17px;letter-spacing:.04em;color:var(--dim)}
+.xl span{flex:1;text-align:center}
+
+/* ---------- timer overlay ---------- */
+.timer{position:fixed;inset:0;z-index:20;visibility:hidden;background:rgba(3,3,10,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+ clip-path:circle(0 at var(--x,50%) var(--y,50%));
+ transition:clip-path .55s cubic-bezier(.6,0,.2,1),visibility 0s .55s;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;
+ padding:calc(env(safe-area-inset-top) + 20px) 20px calc(env(safe-area-inset-bottom) + 20px);overflow:hidden}
+.timer.open{visibility:visible;clip-path:circle(150% at var(--x,50%) var(--y,50%));transition:clip-path .7s cubic-bezier(.2,.8,.2,1),visibility 0s}
+.orb{position:absolute;width:130vmax;height:130vmax;left:50%;top:42%;margin:-65vmax 0 0 -65vmax;
+ background:radial-gradient(circle,rgba(48,209,88,.3),transparent 40%);animation:breathe 6s ease-in-out infinite;transition:background 1s}
+@keyframes breathe{50%{transform:scale(1.18)}}
+.paused .orb{animation-play-state:paused;opacity:.4}
+.low .orb{background:radial-gradient(circle,rgba(255,159,10,.35),transparent 40%)}
+.tname{position:relative;font-family:var(--old);font-size:32px;letter-spacing:.05em;text-align:center;max-width:92%}
+.ringwrap{position:relative;width:min(80vw,340px);aspect-ratio:1}
+.ringwrap svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.trk{fill:rgba(255,255,255,.04);stroke:rgba(255,255,255,.12);stroke-width:12}
+.prg{fill:none;stroke:url(#g);stroke-width:12;stroke-linecap:round;stroke-dasharray:603.19;filter:drop-shadow(0 0 12px rgba(48,209,88,.65))}
+.time{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--old);
+ font-size:clamp(64px,20vw,96px);line-height:1;letter-spacing:.02em}
+.low .prg{stroke:#ff9f0a;filter:drop-shadow(0 0 12px rgba(255,159,10,.7))}
+.low .ringwrap{animation:beat 1s ease-in-out infinite}
+@keyframes beat{50%{transform:scale(1.04)}}
+.paused .time{animation:bl 1.2s steps(1) infinite}
+@keyframes bl{50%{opacity:.3}}
+.finished .ringwrap{animation:pop .7s var(--spring)}
+@keyframes pop{from{transform:scale(.85)}}
+.trow{position:relative;display:flex;gap:14px}
+.trow .btn{min-width:142px;height:66px;font-size:10px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01s!important}}
+</style></head><body>
+<div class="bg"></div>
+
+<div class="scroll">
+ <h1 id="ttl">Tasks</h1>
+ <div class="sub" id="cnt"></div>
+ <section class="view" id="v-tasks">
+  <div class="glass panel">
+   <div class="row"><input id="name" maxlength="60" placeholder="NEW TASK" autocomplete="off"></div>
+   <div class="clock" aria-label="Duration">
+    <div class="wheel" id="wh"></div>
+    <div class="colon">:</div>
+    <div class="wheel" id="wm"></div>
+   </div>
+   <div class="row"><button class="btn go full" id="add">Add task</button></div>
+  </div>
+  <div id="list"></div>
+ </section>
+ <section class="view" id="v-stats" hidden>
+  <div class="glass seg"><button class="sg on" data-k="d">Daily</button><button class="sg" data-k="w">Weekly</button><button class="sg" data-k="m">Monthly</button></div>
+  <div class="stats"><div class="glass"><b id="sn">0</b>tasks done</div><div class="glass"><b id="sm">0</b>minutes</div></div>
+  <div class="glass chartp"><div class="t">Minutes finished<small id="range"></small></div><div class="plot" id="plot"></div><div class="xl" id="xl"></div></div>
+ </section>
+</div>
+<nav class="glass dock"><button class="tab on" data-v="tasks">Tasks</button><button class="tab" data-v="stats">Analysis</button></nav>
+
+<div class="timer" id="timer" role="dialog" aria-label="Timer">
+ <div class="orb"></div>
+ <div class="tname" id="tn"></div>
+ <div class="ringwrap">
+  <svg viewBox="0 0 220 220"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#30d158"/><stop offset="1" stop-color="#64d2ff"/></linearGradient></defs>
+  <circle class="trk" cx="110" cy="110" r="96"/><circle class="prg" id="ring" cx="110" cy="110" r="96"/></svg>
+  <div class="time" id="tt">00:00</div>
+ </div>
+ <div class="trow"><button class="btn glass" id="pause">Pause</button><button class="btn red" id="stop">Stop</button></div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+let S=load('tt_tasks',[]),L=load('tt_log',[]),fresh=null,mode='d',T=null,wl=null,view='tasks';
+const save=()=>{try{localStorage.setItem('tt_tasks',JSON.stringify(S));localStorage.setItem('tt_log',JSON.stringify(L))}catch(e){}};
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shake=el=>{el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake')};
+
+function render(){
+  $('#list').innerHTML=S.map(t=>`<div class="glass task${t.done?' done':''}${t.id===fresh?' new':''}" data-id="${t.id}"><div class="box"></div><div class="name">${esc(t.name)}</div><button class="btn go play" data-a="play" aria-label="Start ${esc(t.name)}"${t.done?' disabled':''}></button><button class="btn x" data-a="del" aria-label="Delete task">×</button></div>`).join('');
+  const d=S.filter(t=>t.done).length;
+  if(view==='tasks')$('#cnt').textContent=S.length?d+' of '+S.length+' done':'';
+  fresh=null;
+}
+
+/* ---- scrollable clock ---- */
+const IT=62;
+let WH=0,WM=25;
+function wheel(el,count,pad,onChange){
+  el.innerHTML='<div class="wcol">'+Array.from({length:count},(_,i)=>`<div class="witem" data-i="${i}">${String(i).padStart(pad,'0')}</div>`).join('')+'</div>';
+  let raf=0;
+  const paint=()=>{
+    const i=Math.round(el.scrollTop/IT);
+    el.querySelectorAll('.witem').forEach((n,j)=>n.classList.toggle('on',j===i));
+    onChange(i);
+  };
+  el.addEventListener('scroll',()=>{if(raf)return;raf=requestAnimationFrame(()=>{raf=0;paint()})},{passive:true});
+  return {set(v){el.scrollTop=v*IT;paint()}};
+}
+const wH=wheel($('#wh'),10,2,v=>WH=v);
+const wM=wheel($('#wm'),60,2,v=>WM=v);
+requestAnimationFrame(()=>{wH.set(WH);wM.set(WM)});
+
+function add(){
+  const n=$('#name').value.trim(),m=WH*60+WM;
+  if(!n){shake($('#name'));$('#name').focus();return}
+  if(m<1){shake($('.clock'));return}
+  const t={id:Date.now(),name:n,mins:m,done:false};S.push(t);fresh=t.id;save();render();
+  $('#name').value='';$('#name').blur();
+}
+$('#add').onclick=add;
+$('#name').onkeydown=e=>{if(e.key==='Enter')add()};
+$('#list').onclick=e=>{
+  const b=e.target.closest('button');if(!b)return;
+  const id=+b.closest('.task').dataset.id;
+  if(b.dataset.a==='del'){S=S.filter(t=>t.id!==id);save();render()}
+  else{const r=b.getBoundingClientRect();start(id,r.left+r.width/2,r.top+r.height/2)}
+};
+
+$$('.tab').forEach(b=>b.onclick=()=>{
+  view=b.dataset.v;$$('.tab').forEach(x=>x.classList.toggle('on',x===b));
+  $('#v-tasks').hidden=view!=='tasks';$('#v-stats').hidden=view!=='stats';
+  $('#ttl').textContent=view==='tasks'?'Tasks':'Analysis';
+  if(view==='stats'){$('#cnt').textContent='Your focus time';chart()}else render();
+  $('.scroll').scrollTop=0;
+});
+$$('.sg').forEach(b=>b.onclick=()=>{mode=b.dataset.k;$$('.sg').forEach(x=>x.classList.toggle('on',x===b));chart()});
+
+function buckets(){
+  const now=new Date(),out=[],s=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const sh=d=>d.toLocaleDateString('en',{month:'short'});
+  if(mode==='d')for(let i=6;i>=0;i--){const a=new Date(s);a.setDate(a.getDate()-i);const b=new Date(a);b.setDate(b.getDate()+1);out.push({a,b,l:i?a.toLocaleDateString('en',{weekday:'short'}):'Today'})}
+  else if(mode==='w'){s.setDate(s.getDate()-(s.getDay()+6)%7);for(let i=5;i>=0;i--){const a=new Date(s);a.setDate(a.getDate()-7*i);const b=new Date(a);b.setDate(b.getDate()+7);out.push({a,b,l:a.getDate()+' '+sh(a)})}}
+  else for(let i=5;i>=0;i--){const a=new Date(now.getFullYear(),now.getMonth()-i,1),b=new Date(now.getFullYear(),now.getMonth()-i+1,1);out.push({a,b,l:sh(a)})}
+  out.forEach(o=>{const e=L.filter(x=>x.t>=+o.a&&x.t<+o.b);o.m=e.reduce((p,x)=>p+x.m,0);o.n=e.length});
+  return out;
+}
+function chart(){
+  const b=buckets(),max=Math.max(...b.map(o=>o.m),1);
+  $('#plot').innerHTML=b.map(o=>`<div class="colw"><div class="bar" data-h="${o.m/max*84}">${o.m?`<span class="val">${o.m}</span>`:''}</div></div>`).join('');
+  $('#xl').innerHTML=b.map(o=>`<span>${o.l}</span>`).join('');
+  $('#sn').textContent=b.reduce((p,o)=>p+o.n,0);$('#sm').textContent=b.reduce((p,o)=>p+o.m,0);
+  $('#range').textContent={d:'last 7 days',w:'last 6 weeks',m:'last 6 months'}[mode];
+  requestAnimationFrame(()=>requestAnimationFrame(()=>$$('.bar').forEach(e=>e.style.height=e.dataset.h+'%')));
+}
+
+const C=603.19,tm=$('#timer');
+function start(id,x,y){
+  const t=S.find(a=>a.id===id);if(!t||t.done)return;
+  const ms=t.mins*60000;T={id,total:ms,left:ms,end:Date.now()+ms,run:true,fin:false};
+  tm.style.setProperty('--x',x+'px');tm.style.setProperty('--y',y+'px');
+  tm.className='timer open';$('#tn').textContent=t.name;$('#pause').textContent='Pause';$('#pause').hidden=false;$('#stop').textContent='Stop';$('#stop').className='btn red';
+  try{navigator.wakeLock&&navigator.wakeLock.request('screen').then(w=>wl=w).catch(()=>{})}catch(e){}
+  tick();
+}
+function tick(){
+  if(!T||T.fin)return;cancelAnimationFrame(T.raf);
+  if(T.run)T.left=Math.max(0,T.end-Date.now());
+  const p=1-T.left/T.total,s=Math.ceil(T.left/1000);
+  $('#ring').style.strokeDashoffset=C*p;
+  $('#tt').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+  tm.classList.toggle('low',s<=10&&s>0);
+  if(T.run&&T.left<=0)return finish();
+  if(T.run)T.raf=requestAnimationFrame(tick);
+}
+function finish(){
+  T.fin=true;const t=S.find(a=>a.id===T.id);
+  if(t){t.done=true;L.push({t:Date.now(),m:t.mins});save();render()}
+  tm.classList.remove('low','paused');tm.classList.add('finished');
+  $('#ring').style.strokeDashoffset=0;$('#tt').textContent='Done';
+  $('#pause').hidden=true;$('#stop').textContent='Close';$('#stop').className='btn go';
+  try{navigator.vibrate&&navigator.vibrate([200,100,200,100,400])}catch(e){}
+  try{wl&&wl.release()}catch(e){}
+}
+$('#pause').onclick=()=>{
+  if(!T||T.fin)return;
+  if(T.run){T.left=Math.max(0,T.end-Date.now());T.run=false;cancelAnimationFrame(T.raf);tm.classList.add('paused');$('#pause').textContent='Resume'}
+  else{T.end=Date.now()+T.left;T.run=true;tm.classList.remove('paused');$('#pause').textContent='Pause';tick()}
+};
+let sure=0;
+$('#stop').onclick=()=>{
+  if(T&&!T.fin&&!sure){const b=$('#stop');b.textContent='Sure?';sure=setTimeout(()=>{sure=0;b.textContent='Stop'},2500);return}
+  clearTimeout(sure);sure=0;if(T)cancelAnimationFrame(T.raf);
+  try{wl&&wl.release()}catch(e){}
+  T=null;tm.classList.remove('open','paused','low','finished');
+};
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&T&&T.run)tick()});
+render();
+</script>
+</body></html>
